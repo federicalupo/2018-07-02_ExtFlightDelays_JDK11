@@ -3,7 +3,9 @@ package it.polito.tdp.extflightdelays;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
+import it.polito.tdp.extflightdelays.model.Rotta;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,7 +35,7 @@ public class FXMLController {
     private Button btnAnalizza;
 
     @FXML
-    private ComboBox<?> cmbBoxAeroportoPartenza;
+    private ComboBox<Airport> cmbBoxAeroportoPartenza;
 
     @FXML
     private Button btnAeroportiConnessi;
@@ -46,16 +48,57 @@ public class FXMLController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
+    	this.txtResult.clear();
+    	
+    	try {
+    		Double distanza = Double.valueOf(this.distanzaMinima.getText());
+    		model.creaGrafo(distanza);
+    		
+    		this.cmbBoxAeroportoPartenza.getItems().clear();
+    		this.cmbBoxAeroportoPartenza.getItems().addAll(model.vertici());
+    		this.cmbBoxAeroportoPartenza.setValue(model.vertici().get(0));
+    		
+    		this.txtResult.appendText(String.format("Grafo creato!\n#vertici: %d\n#archi: %d",model.nVertici(), model.nArchi()));
+    	
+    	}catch(NumberFormatException nfe) {
+    		this.txtResult.appendText("Inserisci valore corretto");
+    	}
 
     }
 
     @FXML
     void doCalcolaAeroportiConnessi(ActionEvent event) {
+    	this.txtResult.clear();
+    	
+    	Airport a = this.cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(model.adiacenti(a).size()>0) {
+    		this.txtResult.appendText("Aeroporti connessi a "+a+"\n");
+    		for(Rotta r: model.adiacenti(a)) {
+    			this.txtResult.appendText(r.toString()+"\n");
+    		}
+    	}else {
+    		this.txtResult.appendText("Nessun adiacente");
+    	}
 
     }
 
     @FXML
     void doCercaItinerario(ActionEvent event) {
+    	this.txtResult.clear();
+    	
+    	try {
+    		Integer distanza = Integer.valueOf(this.numeroVoliTxtInput.getText());
+    		Airport a = this.cmbBoxAeroportoPartenza.getValue();
+    		this.txtResult.appendText("Itinerario con "+distanza+" miglia:\n");
+    		for(Airport air : model.cerca(distanza, a)) {
+    			this.txtResult.appendText(air+"\n");
+    		}
+    		this.txtResult.appendText("\n\nDistanza percorsa: "+model.getDistanzaTot());
+    	}
+    	catch(NumberFormatException nfe) {
+    		this.txtResult.appendText("Inserisci valore corretto");
+    	}
 
     }
 
